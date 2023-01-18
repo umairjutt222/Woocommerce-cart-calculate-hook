@@ -1,80 +1,162 @@
 
 // https://littlebitfarmri.com/
 // calculate cart for specifics product class shipping class quantity price and tax rate applied
+
 add_action( 'woocommerce_cart_calculate_fees', 'shipping_class_and_item_quantity_fee', 10, 1 ); 
 function shipping_class_and_item_quantity_fee( $cart ) {
 
     ## -------------- YOUR SETTINGS BELOW ------------ ##
     $shipping_class = 'dahlia-tuber'; // Targeted Shipping class slug
+	$csa_flower_shipping_class = 'late-season-dahlias';
+	$csa_half_flower = 'csa-half-flower';
+	$csa_full_flower = 'csa-full-season-flower';
     $base_fee_rate  = 70; // Base rate for the fee
     ## ----------------------------------------------- ##
 $chosen_shipping_methods = WC()->session->get( 'chosen_shipping_methods' );
 	$counter = 0;
 
     $total_quantity = 0; // Initializing
-
+$current_price = 0;
+	(float)$new_current_price = 0;
+	$current_quantity = 0;
     // Loop through cart items
     foreach( $cart->get_cart() as $cart_item ) {
         // Get the instance of the WC_Product Object
         $product = $cart_item['data'];
 
         // Check for product shipping class
+        // $product->get_shipping_class() == $shipping_class || $product->get_shipping_class() == $csa_flower_shipping_class || $product->get_shipping_class() == $csa_half_flower || $product->get_shipping_class() == $csa_full_flower
         if( $product->get_shipping_class() == $shipping_class ) {
             $total_quantity += $cart_item['quantity']; // Add item quantity
-			$current_price = $product->get_regular_price();
+			$current_quantity += $cart_item['quantity']; // Add item quantity
+			$current_price = (float)$product->get_regular_price();
 			$update_price = $current_price * $total_quantity;
+			$new_current_price += $update_price;
         }
-    }
+		$total_quantity = 0;
+// 		var_dump($new_current_price);
+		if($product->get_shipping_class() == $csa_flower_shipping_class){
+// 			$total_quantity = 0;
+			$total_quantity += $cart_item['quantity']; // Add item quantity
+// 			$current_quantity += $cart_item['quantity'];
+			$current_price = (float)$product->get_regular_price();
+			
+			$update_price = $current_price * $total_quantity;
+			$new_current_price +=  $update_price;
+// 			var_dump($new_current_price);
+		}
+		$total_quantity = 0;
+// 		var_dump($new_current_price);
+		if($product->get_shipping_class() == $csa_half_flower){
+// 			$total_quantity = 0;
+			$total_quantity += $cart_item['quantity']; // Add item quantity
+// 			$current_quantity += $cart_item['quantity'];
+			$current_price = (float)$product->get_regular_price();
+			$update_price = $current_price * $total_quantity;
+			$new_current_price +=  $update_price;
+		}
+// 		var_dump($new_current_price);
+		$total_quantity = 0;
+		if($product->get_shipping_class() == $csa_full_flower){
+// 			$total_quantity = 0;
+			$total_quantity += $cart_item['quantity']; // Add item quantity
+// 			$current_quantity += $cart_item['quantity'];
+			$current_price = (float)$product->get_regular_price();
+			$update_price = $current_price * $total_quantity;
+			$new_current_price +=  $update_price;
+		}
+		
 
-	
+    }
+// 	var_dump($new_current_price);
+// 	var_dump($new_current_price + 4);
+// $taxes = $cart->get_taxes();
+// 		$current_price = array_values($taxes);
+// 	$current_tax_price = $current_price[0];
+// 	var_dump( $current_tax_price);
+// 	$current_tax_price = 0;
+// 	$taxes = $cart->get_taxes();
+// 		$current_price_tax = array_values($taxes);
+// 	$current_tax_price = $current_price_tax[0];
+// 	var_dump( $current_tax_price);
+// 	var_dump($current_price);
 	if(in_array("flat_rate:2", $chosen_shipping_methods)){
 // No code Here Our Flate rate is Working Fine
+if( $product->get_shipping_class() == $shipping_class ) {
+// 	$percent = 0.07; // 7% tax for tuber products
+// 		$new_current_pricee = floatval($new_current_price);
+//         $surcharge = $new_current_pricee * $percent
+// 	
+//         $surcharge = $new_current_pricee * $percent;
+// 		var_dump($new_current_price);
+//         $cart->add_fee( __( 'Tax ', 'woocommerce'), $surcharge, false );
+}
+		
 
+		
     }
 
 // 	Code For Local Pickup for out match shipping zone area to set Tax Rate
 	if(in_array("local_pickup:37", $chosen_shipping_methods)){
-		if( $product->get_shipping_class() == $shipping_class ) {
+
+// 		if( $product->get_shipping_class() == $shipping_class ) {
+
 		$fee_text   = __('Tuber Shipping Fee', 'woocommerce');
         $fee_amount = 0; // Calculate fee amount
-        $cart->add_fee( $fee_text, $fee_amount, false, 'Seven Percent');
+        $cart->add_fee( $fee_text, $fee_amount);
 
 		$percent = 0.07; // 7% tax for tuber products
-        $surcharge = $update_price * $percent;
-        $cart->add_fee( __( 'Tax ', 'woocommerce'),$surcharge, false );
-		
-		}
+		$new_current_pricee = floatval($new_current_price);
+//         $surcharge = $new_current_pricee * $percent
+// 	
+        $surcharge = $new_current_pricee * $percent;
+// 		var_dump($new_current_price);
+        $cart->add_fee( __( 'Tax ', 'woocommerce'), $surcharge, false );
+// 		var_dump( $chosen_shipping_methods);
+// 		}
 	}
+
+
 // 	Code For our unmatch shipping zone No Tax Applied
 	if(in_array("local_pickup:35", $chosen_shipping_methods)){
 		$fee_text   = __('Tuber Shipping Fee', 'woocommerce');
         $fee_amount = 0; // Calculate fee amount
         // Add the fee
         $cart->add_fee( $fee_text, $fee_amount);
-
+		$_SESSION['_agspp_remove_tax'] = true;
+		
+// var_dump( $chosen_shipping_methods);
 	}
 // 	Check Quantity base tuber shipping fee
-    if ( $total_quantity > 0 && $total_quantity <= 6 ) {
+// 	var_dump($current_quantity);
+    if ( $current_quantity > 0 && $current_quantity <= 6 ) {
+		
         $fee_text   = __('Tuber Shipping Fee', 'woocommerce');
         $fee_amount = 10.40; // Calculate fee amount
 
         // Add the fee
         $cart->add_fee( $fee_text, $fee_amount );
-    }elseif( $total_quantity >= 7 && $total_quantity <= 30 ) {
+		
+    }elseif( $current_quantity >= 7 && $current_quantity<= 30 ) {
+		
         $fee_text   = __('Tuber Shipping Fee', 'woocommerce');
         $fee_amount = 17.05; // Calculate fee amount
 
         // Add the fee
         $cart->add_fee( $fee_text, $fee_amount );
-    }elseif ( $total_quantity >= 31 && $total_quantity <= 55 ) {
+		
+    }elseif ( $current_quantity >= 31 && $current_quantity <= 55 ) {
+		
         $fee_text   = __('Tuber Shipping Fee', 'woocommerce');
         $fee_amount = 22.45; // Calculate fee amount
 
         // Add the fee
         $cart->add_fee( $fee_text, $fee_amount );
-    }elseif($total_quantity >= 56){
+		
+    }elseif($current_quantity >= 56){
 
 		wc_add_notice( 'To purchase 56 or more tubers, please place this order, then place an additional order for best shipping rates', 'error' );
 
 	}
 }
+
